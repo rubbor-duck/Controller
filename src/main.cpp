@@ -1,90 +1,23 @@
 #include <Arduino.h>
 #include <BleGamepad.h>
 #include <Bounce2.h>
+#include <NimBLEDevice.h>
+#include <main.h>
 
 
 
 BleGamepadConfiguration config;
 BleGamepad bleGamepad("Crusty Controller", "Jordan The Grand");
 
-bool buttonTask(void);
-bool hatTask(void);
-uint16_t readAxisAveraged (uint8_t pin);
-bool axisTask(void);
-void pinModeSetup(void);
-void sendBatteryLevel(void);
-
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
-
-// TODO change GPIO placeholder number to actual numbers
-// Button mapping from GPIO port
-#define BTN_X_PIN       GPIO_NUM_4
-#define BTN_O_PIN       GPIO_NUM_5
-#define BTN_SQR_PIN     GPIO_NUM_6
-#define BTN_TRI_PIN     GPIO_NUM_7
-#define BTN_L3_PIN      GPIO_NUM_14
-#define BTN_R3_PIN      GPIO_NUM_15
-#define BTN_LB_PIN      GPIO_NUM_16
-#define BTN_RB_PIN      GPIO_NUM_17
-//special buttons have to be semi separate
-#define BTN_START_PIN   GPIO_NUM_12
-#define BTN_SELECT_PIN  GPIO_NUM_13
-#define BTN_HOME_PIN    GPIO_NUM_28
-#define BTN_COUNT ARRAY_SIZE(BTN_PINS)
-
-// hatswitch mapping
-#define DPAD_UP_PIN     GPIO_NUM_8
-#define DPAD_LEFT_PIN   GPIO_NUM_9
-#define DPAD_DOWN_PIN   GPIO_NUM_10
-#define DPAD_RIGHT_PIN  GPIO_NUM_11
-#define HAT_COUNT ARRAY_SIZE(HAT_PINS)
-
-
-// Analog Mapping
-#define STICK_LX_PIN   GPIO_NUM_18
-#define STICK_LY_PIN   GPIO_NUM_19
-#define STICK_RX_PIN   GPIO_NUM_20
-#define STICK_RY_PIN   GPIO_NUM_21
-#define SLIDER_LT_PIN  GPIO_NUM_26
-#define SLIDER_RT_PIN  GPIO_NUM_27
-#define AXIS_COUNT ARRAY_SIZE(AXIS_PINS)
-
-#define NUM_SAMPLES 8 // number of samples to average
-#define DEADZONE 50
-#define NUM_SPECIAL_BTN 3 // number of specials buttons
-#define SLEEP_TIMOUT_MS (5 * 60 * 1000) // 5 minutes
-#define BATTERY_CHECK_INTERVAL (30 * 1000) // 30 seconds
-#define BTN_WAKEUP_BITMASK (1ULL << BTN_HOME_PIN)
-
-#define BATTERY_PIN GPIO_NUM_35
-#define BATT_MAX_MV 4200
-#define BATT_MIN_MV 3300 // LiPo cutoff voltage
-
-const uint8_t BTN_PINS[] = {
-  // saves the buttons into an array for cleaner use
-  // Button order in array:
-  // X, O, SQR, TRI, DUP, DRIGHT, DLEFT, DDOWN, START, SELECT, L3, R3, LB, RB
-      BTN_X_PIN, BTN_O_PIN, BTN_SQR_PIN, BTN_TRI_PIN,
-      BTN_L3_PIN, BTN_R3_PIN, BTN_LB_PIN, BTN_RB_PIN,
-      BTN_START_PIN, BTN_SELECT_PIN, BTN_HOME_PIN
-    };
-const uint8_t AXIS_PINS[] = {
-// saves the analog inputs into an array for cleaner use
-      STICK_LX_PIN, STICK_LY_PIN, STICK_RX_PIN, STICK_RY_PIN,
-      SLIDER_LT_PIN, SLIDER_RT_PIN
-};
-const uint8_t HAT_PINS[] = {
-      DPAD_UP_PIN, DPAD_LEFT_PIN, DPAD_DOWN_PIN, DPAD_RIGHT_PIN
-};
-const TickType_t pollInterval = pdMS_TO_TICKS(10); //10ms or 100Hz polling rate
-
 Bounce2::Button btns[BTN_COUNT];
 Bounce2::Button hats[HAT_COUNT];
 
-uint16_t lastAxisValues[AXIS_COUNT] = {0};
 unsigned long lastInputTime = 0;
 unsigned long lastBatteryCheck = 0;
+unsigned long unpairTimer = 0;
 unsigned long now = 0;
+
+int16_t lastAxisValues[AXIS_COUNT] = {0};
 
 bool buttonTask(void) {
     bool changed = false;
@@ -155,17 +88,23 @@ bool hatTask(void)
   return changed;
 }
 
-uint16_t readAxisAveraged (uint8_t pin)
+int16_t readAxisAveraged (uint8_t pin)
 {
   uint32_t potValue = 0;
   for (int i = 0; i < NUM_SAMPLES; i++)
   {
     potValue += analogRead(pin);
+    delayMicroseconds(50); // 50 micro seconds between samples
   }
 
   potValue = potValue / NUM_SAMPLES;
 
-  return potValue;
+  // Map analog reading from 0 ~ 4095 to 32737 ~ 0 for use as an axis reading
+  int32_t adjustedValue = map(potValue, 0, 4095, 32767, 0);
+
+  adjustedValue = constrain(adjustedValue, -32767, 32767);
+
+  return (int16_t)adjustedValue;
 }
 
 bool axisTask(void)
@@ -173,24 +112,25 @@ bool axisTask(void)
   // reads the current axis value, sees if the current change is greater than
   // the deadzone, then updates all the sticks if one changed
   bool changed = false;
-  uint16_t currentAxisValues[AXIS_COUNT];
 
   for (int i = 0; i < AXIS_COUNT; i++)
   {
-    currentAxisValues[i] = readAxisAveraged(AXIS_PINS[i]);
+    int16_t val = readAxisAveraged(AXIS_PINS[i]);
 
-    if(abs(currentAxisValues[i]-lastAxisValues[i]) > DEADZONE)
+    if(abs(val-lastAxisValues[i]) > DEADZONE)
     {
       changed = true;
-      lastAxisValues[i] = currentAxisValues[i];
+      lastAxisValues[i] = val;
     }
   }
 
   if(changed)
     {
-      bleGamepad.setLeftThumb(lastAxisValues[0], lastAxisValues[1]);
-      bleGamepad.setRightThumb(lastAxisValues[2], lastAxisValues[3]);
-      bleGamepad.setTriggers(lastAxisValues[4], lastAxisValues[5]);
+      // TODO: fix triggers, find out why right stick is z and Rz
+      bleGamepad.setX(lastAxisValues[0]);
+      bleGamepad.setY(lastAxisValues[1]);
+      bleGamepad.setZ(lastAxisValues[2]);
+      bleGamepad.setRZ(lastAxisValues[3]);
 
       return changed;
     }
@@ -207,14 +147,14 @@ void pinModeSetup(void)
   for (int i = 0; i < BTN_COUNT; i++)
   {
     btns[i].attach(BTN_PINS[i], INPUT_PULLUP);
-    btns[i].interval(5); // 5ms debounce window
+    btns[i].interval(1); // 1ms debounce window
   }
   
   // sets hat pins to input pullup
   for (int i = 0; i < HAT_COUNT; i++)
   {
     hats[i].attach(HAT_PINS[i], INPUT_PULLUP);
-    hats[i].interval(5);
+    hats[i].interval(1);
   }
 
   // sets axis pins to analog
@@ -224,23 +164,62 @@ void pinModeSetup(void)
   }
 }
 
-void sendBatteryLevel(void) {
-    uint32_t raw = readAxisAveraged(BATTERY_PIN); 
-    uint32_t millivolts = (raw * 3300 / 4095) * 2; // x2 to undo voltage divider
-    uint8_t percent = map(millivolts, BATT_MIN_MV, BATT_MAX_MV, 0, 100);
-    percent = constrain(percent, 0, 100);
-    bleGamepad.setBatteryLevel(percent);
+bool sendBatteryLevel(unsigned long now, unsigned long lastBatteryCheck) 
+{
+  if (now - lastBatteryCheck > BATTERY_CHECK_INTERVAL)  // every 30 seconds, send the battery level to the computer
+    {
+      uint32_t raw = readAxisAveraged(BATTERY_PIN); 
+      uint32_t millivolts = (raw * 3300 / 4095) * 2; // x2 to undo voltage divider
+      uint8_t percent = map(millivolts, BATT_MIN_MV, BATT_MAX_MV, 0, 100);
+      percent = constrain(percent, 0, 100);
+      bleGamepad.setBatteryLevel(percent);
+
+      lastBatteryCheck = now;
+      return true;
+    }
+  else
+    return false;
+}
+
+void rumbleTask(void)
+{
+  
+}
+
+void idleSleepTimer(unsigned long now, unsigned long lastInputTime)
+{
+  if (now - lastInputTime > SLEEP_TIMOUT_MS)  // if it has been more than 5 minutes of no changes
+    {
+      esp_sleep_enable_ext1_wakeup(BTN_WAKEUP_BITMASK, ESP_EXT1_WAKEUP_ANY_LOW);
+      esp_deep_sleep_start();
+    }
+}
+
+void unPairingTask(unsigned long now, unsigned long unpairTimer)
+{
+  if (btns[BTN_HOME_PIN].isPressed())// if the home button has been pressed for more than 3 seconds, unpair and enter pairing mode
+    {
+      if (now - unpairTimer > 3*1000) 
+      {
+        NimBLEDevice::deleteAllBonds();
+        ESP.restart();
+      }
+    }
+    else
+    {
+      unpairTimer = now;
+    }
 }
 
 
 
 void setup() {
-  config.setControllerType(CONTROLLER_TYPE_GAMEPAD);  // sets the controller type to a generic xbox controller
   config.setButtonCount(BTN_COUNT - NUM_SPECIAL_BTN);
   config.setHatSwitchCount(1);  // only have 1 set of hat switches (4 hat switches per set)
   config.setWhichSpecialButtons(true, true, false, true, false, false, false, false); // enables the start, select, and home button
-  config.setWhichAxes(true, true, false, true, true, false, true, true);  // enables the left/right joystick x/y axis, and left/right trigger
-  
+  config.setWhichAxes(true, true, true, true, true, true, false, false);  // enables the left/right joystick x/y axis, and left/right trigger
+  config.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
+  config.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
   pinModeSetup();
 
   bleGamepad.begin(&config);
@@ -258,25 +237,17 @@ void loop() {
     
     now = millis(); // current time
 
-    if (now - lastInputTime > SLEEP_TIMOUT_MS)  // if it has been more than 5 minutes of no changes
-    {
-      esp_sleep_enable_ext1_wakeup(BTN_WAKEUP_BITMASK, ESP_EXT1_WAKEUP_ANY_LOW);
-      esp_deep_sleep_start();
-    }
+    idleSleepTimer(now, lastInputTime); // puts ESP to sleep if idle time is greater than 5 minutes
 
-    if (now - lastBatteryCheck > BATTERY_CHECK_INTERVAL)  // every 30 seconds, send the battery level to the computer
-      {
-          lastBatteryCheck = now;
-          sendBatteryLevel();
-          anyChanged = true;
-      }
+    // anyChanged |= sendBatteryLevel(now, lastBatteryCheck);  // sends battery level to computer
 
-    if (anyChanged)
+    unPairingTask(now, unpairTimer); // unpairs device
+
+    if (anyChanged) // sends report if any button/hat/axis state has changed and send the battery level
       {
         lastInputTime = now;
-        bleGamepad.sendReport();  // sends report if any button/hat/axis state has changed and send the battery level
+        bleGamepad.sendReport();  
       }
-
 
     vTaskDelayUntil(&lastWake, pollInterval);
   }
