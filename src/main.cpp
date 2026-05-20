@@ -53,39 +53,73 @@ bool buttonTask(void) {
     return changed;
 }
 
+// bool hatTask(void)
+// {
+//   bool changed = false;
+
+//   for (int i = 0; i < HAT_COUNT; i++)
+//   {
+//     hats[i].update(); // updates the button presses each poll
+//     if (hats[i].fell() || hats[i].rose())
+//     {
+//       changed = true;
+//     }
+//   }
+
+//   if (changed)
+//   {
+//     bool up    = hats[0].isPressed();
+//     bool left  = hats[1].isPressed();
+//     bool down  = hats[2].isPressed();
+//     bool right = hats[3].isPressed();
+
+//     // Combines dpad inputs into a single hat direction
+//     if      ( up && !left && !right)  bleGamepad.setHat(HAT_UP);
+//     else if ( up &&  right)           bleGamepad.setHat(HAT_UP_RIGHT);
+//     else if ( up &&  left)            bleGamepad.setHat(HAT_UP_LEFT);
+//     else if (down && !left && !right) bleGamepad.setHat(HAT_DOWN);
+//     else if (down &&  right)          bleGamepad.setHat(HAT_DOWN_RIGHT);
+//     else if (down &&  left)           bleGamepad.setHat(HAT_DOWN_LEFT);
+//     else if (right)                   bleGamepad.setHat(HAT_RIGHT);
+//     else if (left)                    bleGamepad.setHat(HAT_LEFT);
+//     else                              bleGamepad.setHat(HAT_CENTERED);
+//   }
+  
+//   return changed;
+// }
+
 bool hatTask(void)
 {
-  bool changed = false;
+    static bool lastUp    = false;
+    static bool lastLeft  = false;
+    static bool lastDown  = false;
+    static bool lastRight = false;
 
-  for (int i = 0; i < HAT_COUNT; i++)
-  {
-    hats[i].update(); // updates the button presses each poll
-    if (hats[i].fell() || hats[i].rose())
+    // INPUT_PULLUP: LOW = pressed, so invert with !
+    bool up    = !digitalRead(DPAD_UP_PIN);
+    bool left  = !digitalRead(DPAD_LEFT_PIN);
+    bool down  = !digitalRead(DPAD_DOWN_PIN);
+    bool right = !digitalRead(DPAD_RIGHT_PIN);
+
+    bool changed = (up    != lastUp)   || (left  != lastLeft) ||
+                   (down  != lastDown) || (right != lastRight);
+
+    if (changed)
     {
-      changed = true;
+        lastUp = up; lastLeft = left; lastDown = down; lastRight = right;
+
+        if      (up   && !left && !right)  bleGamepad.setHat(HAT_UP);
+        else if (up   &&  right)           bleGamepad.setHat(HAT_UP_RIGHT);
+        else if (up   &&  left)            bleGamepad.setHat(HAT_UP_LEFT);
+        else if (down && !left && !right)  bleGamepad.setHat(HAT_DOWN);
+        else if (down &&  right)           bleGamepad.setHat(HAT_DOWN_RIGHT);
+        else if (down &&  left)            bleGamepad.setHat(HAT_DOWN_LEFT);
+        else if (right)                    bleGamepad.setHat(HAT_RIGHT);
+        else if (left)                     bleGamepad.setHat(HAT_LEFT);
+        else                               bleGamepad.setHat(HAT_CENTERED);
     }
-  }
 
-  if (changed)
-  {
-    bool up    = hats[0].isPressed();
-    bool left  = hats[1].isPressed();
-    bool down  = hats[2].isPressed();
-    bool right = hats[3].isPressed();
-
-    // Combines dpad inputs into a single hat direction
-    if      ( up && !left && !right)  bleGamepad.setHat(HAT_UP);
-    else if ( up &&  right)           bleGamepad.setHat(HAT_UP_RIGHT);
-    else if ( up &&  left)            bleGamepad.setHat(HAT_UP_LEFT);
-    else if (down && !left && !right) bleGamepad.setHat(HAT_DOWN);
-    else if (down &&  right)          bleGamepad.setHat(HAT_DOWN_RIGHT);
-    else if (down &&  left)           bleGamepad.setHat(HAT_DOWN_LEFT);
-    else if (right)                   bleGamepad.setHat(HAT_RIGHT);
-    else if (left)                    bleGamepad.setHat(HAT_LEFT);
-    else                              bleGamepad.setHat(HAT_CENTERED);
-  }
-  
-  return changed;
+    return changed;
 }
 
 int16_t readAxisAveraged (uint8_t pin)
@@ -154,8 +188,7 @@ void pinModeSetup(void)
   // sets hat pins to input pullup
   for (int i = 0; i < HAT_COUNT; i++)
   {
-    hats[i].attach(HAT_PINS[i], INPUT_PULLUP);
-    hats[i].interval(4);
+    pinMode(HAT_PINS[i], INPUT_PULLUP);
   }
 
   // sets axis pins to analog
@@ -184,7 +217,7 @@ bool sendBatteryLevel(unsigned long now)
 
 void rumbleTask(void)
 {
-  
+  // add later once the base controller works fine
 }
 
 void idleSleepTimer(unsigned long now)
@@ -196,6 +229,9 @@ void idleSleepTimer(unsigned long now)
     }
 }
 
+// TODO: Fix unPairingTask
+// is causing the controller to constantly disconnect and reconnect rapidly
+// It's been a naughty boy
 void unPairingTask(unsigned long now)
 {
   if (btns[BTN_COUNT-1].isPressed())// if the home button has been pressed for more than 3 seconds, unpair and enter pairing mode
@@ -215,6 +251,7 @@ void unPairingTask(unsigned long now)
 
 
 void setup() {
+  config.setControllerType(CONTROLLER_TYPE_GAMEPAD);
   config.setButtonCount(BTN_COUNT - NUM_SPECIAL_BTN);
   config.setHatSwitchCount(1);  // only have 1 set of hat switches (4 hat switches per set)
   config.setWhichSpecialButtons(true, true, false, true, false, false, false, false); // enables the start, select, and home button
@@ -224,6 +261,8 @@ void setup() {
   pinModeSetup();
 
   bleGamepad.begin(&config);
+  bleGamepad.setHat(HAT_CENTERED);
+  bleGamepad.sendReport();
 }
 
 void loop() {
@@ -238,7 +277,8 @@ void loop() {
     
     now = millis(); // current time
 
-    // idleSleepTimer(now); // puts ESP to sleep if idle time is greater than 5 minutes
+
+    idleSleepTimer(now); // puts ESP to sleep if idle time is greater than 5 minutes
 
     // anyChanged |= sendBatteryLevel(now);  // sends battery level to computer ** Commented out for testing **
 
