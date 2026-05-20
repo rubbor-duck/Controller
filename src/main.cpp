@@ -165,7 +165,7 @@ void pinModeSetup(void)
   }
 }
 
-bool sendBatteryLevel(unsigned long now, unsigned long lastBatteryCheck) 
+bool sendBatteryLevel(unsigned long now) 
 {
   if (now - lastBatteryCheck > BATTERY_CHECK_INTERVAL)  // every 30 seconds, send the battery level to the computer
     {
@@ -187,7 +187,7 @@ void rumbleTask(void)
   
 }
 
-void idleSleepTimer(unsigned long now, unsigned long lastInputTime)
+void idleSleepTimer(unsigned long now)
 {
   if (now - lastInputTime > SLEEP_TIMOUT_MS)  // if it has been more than 5 minutes of no changes
     {
@@ -196,9 +196,9 @@ void idleSleepTimer(unsigned long now, unsigned long lastInputTime)
     }
 }
 
-void unPairingTask(unsigned long now, unsigned long unpairTimer)
+void unPairingTask(unsigned long now)
 {
-  if (btns[BTN_HOME_PIN].isPressed())// if the home button has been pressed for more than 3 seconds, unpair and enter pairing mode
+  if (btns[BTN_COUNT-1].isPressed())// if the home button has been pressed for more than 3 seconds, unpair and enter pairing mode
     {
       if (now - unpairTimer > 3*1000) 
       {
@@ -233,16 +233,16 @@ void loop() {
     // if a button/hat/axis state changes, then newInput is set to true
     bool anyChanged = false;
     anyChanged |= buttonTask();
-    anyChanged |= axisTask();
+    // anyChanged |= axisTask(); Commented out for testing
     anyChanged |= hatTask();
     
     now = millis(); // current time
 
-    idleSleepTimer(now, lastInputTime); // puts ESP to sleep if idle time is greater than 5 minutes
+    // idleSleepTimer(now); // puts ESP to sleep if idle time is greater than 5 minutes
 
-    // anyChanged |= sendBatteryLevel(now, lastBatteryCheck);  // sends battery level to computer
+    // anyChanged |= sendBatteryLevel(now);  // sends battery level to computer ** Commented out for testing **
 
-    unPairingTask(now, unpairTimer); // unpairs device
+    // unPairingTask(now); // unpairs device
 
     if (anyChanged) // sends report if any button/hat/axis state has changed and send the battery level
       {

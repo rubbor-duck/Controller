@@ -17,8 +17,8 @@
 
 // hatswitch mapping
 #define DPAD_UP_PIN     GPIO_NUM_18
-#define DPAD_LEFT_PIN   GPIO_NUM_8
-#define DPAD_DOWN_PIN   GPIO_NUM_11
+#define DPAD_LEFT_PIN   GPIO_NUM_14
+#define DPAD_DOWN_PIN   GPIO_NUM_21
 #define DPAD_RIGHT_PIN  GPIO_NUM_12
 #define HAT_COUNT ARRAY_SIZE(HAT_PINS)
 
@@ -49,10 +49,10 @@ bool hatTask(void);
 int16_t readAxisAveraged (uint8_t pin);
 bool axisTask(void);
 void pinModeSetup(void);
-bool sendBatteryLevel(unsigned long now, unsigned long lastBatteryCheck);
+bool sendBatteryLevel(unsigned long now);
 void rumbleTask(void);
-void idleSleepTimer(unsigned long now, unsigned long lastInputTime);
-void unPairingTask(unsigned long now, unsigned long unpairTimer);
+void idleSleepTimer(unsigned long now);
+void unPairingTask(unsigned long now);
 
 const uint8_t BTN_PINS[] = {
   // saves the buttons into an array for cleaner use
