@@ -129,8 +129,9 @@ bool axisTask(void)
       // TODO: fix triggers, find out why right stick is z and Rz
       bleGamepad.setX(lastAxisValues[0]);
       bleGamepad.setY(lastAxisValues[1]);
-      bleGamepad.setZ(lastAxisValues[2]);
-      bleGamepad.setRZ(lastAxisValues[3]);
+      bleGamepad.setRX(lastAxisValues[2]);
+      bleGamepad.setRY(lastAxisValues[3]);
+      bleGamepad.setSliders(lastAxisValues[4], lastAxisValues[5]);
 
       return changed;
     }
@@ -147,14 +148,14 @@ void pinModeSetup(void)
   for (int i = 0; i < BTN_COUNT; i++)
   {
     btns[i].attach(BTN_PINS[i], INPUT_PULLUP);
-    btns[i].interval(1); // 1ms debounce window
+    btns[i].interval(4); // 1ms debounce window
   }
   
   // sets hat pins to input pullup
   for (int i = 0; i < HAT_COUNT; i++)
   {
     hats[i].attach(HAT_PINS[i], INPUT_PULLUP);
-    hats[i].interval(1);
+    hats[i].interval(4);
   }
 
   // sets axis pins to analog
@@ -217,7 +218,7 @@ void setup() {
   config.setButtonCount(BTN_COUNT - NUM_SPECIAL_BTN);
   config.setHatSwitchCount(1);  // only have 1 set of hat switches (4 hat switches per set)
   config.setWhichSpecialButtons(true, true, false, true, false, false, false, false); // enables the start, select, and home button
-  config.setWhichAxes(true, true, true, true, true, true, false, false);  // enables the left/right joystick x/y axis, and left/right trigger
+  config.setWhichAxes(true, true, true, true, true, true, true, true);  // enables the left/right joystick x/y axis, and left/right trigger
   config.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
   config.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
   pinModeSetup();
