@@ -4,7 +4,7 @@
 #include <NimBLEDevice.h>
 #include <main.h>
 
-
+// TODO: WORK ON FIXING AXIS, then we can design/print the pcb board
 
 BleGamepadConfiguration config;
 BleGamepad bleGamepad("Crusty Controller", "Jordan The Grand");
@@ -52,41 +52,6 @@ bool buttonTask(void) {
     }
     return changed;
 }
-
-// bool hatTask(void)
-// {
-//   bool changed = false;
-
-//   for (int i = 0; i < HAT_COUNT; i++)
-//   {
-//     hats[i].update(); // updates the button presses each poll
-//     if (hats[i].fell() || hats[i].rose())
-//     {
-//       changed = true;
-//     }
-//   }
-
-//   if (changed)
-//   {
-//     bool up    = hats[0].isPressed();
-//     bool left  = hats[1].isPressed();
-//     bool down  = hats[2].isPressed();
-//     bool right = hats[3].isPressed();
-
-//     // Combines dpad inputs into a single hat direction
-//     if      ( up && !left && !right)  bleGamepad.setHat(HAT_UP);
-//     else if ( up &&  right)           bleGamepad.setHat(HAT_UP_RIGHT);
-//     else if ( up &&  left)            bleGamepad.setHat(HAT_UP_LEFT);
-//     else if (down && !left && !right) bleGamepad.setHat(HAT_DOWN);
-//     else if (down &&  right)          bleGamepad.setHat(HAT_DOWN_RIGHT);
-//     else if (down &&  left)           bleGamepad.setHat(HAT_DOWN_LEFT);
-//     else if (right)                   bleGamepad.setHat(HAT_RIGHT);
-//     else if (left)                    bleGamepad.setHat(HAT_LEFT);
-//     else                              bleGamepad.setHat(HAT_CENTERED);
-//   }
-  
-//   return changed;
-// }
 
 bool hatTask(void)
 {
