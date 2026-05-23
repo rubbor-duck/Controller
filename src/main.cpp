@@ -15,6 +15,7 @@ Bounce2::Button hats[HAT_COUNT];
 unsigned long lastInputTime = 0;
 unsigned long lastBatteryCheck = 0;
 unsigned long unpairTimer = 0;
+unsigned long pairTimer = 0;
 unsigned long now = 0;
 
 int16_t lastAxisValues[AXIS_COUNT] = {0};
@@ -147,7 +148,7 @@ void pinModeSetup(void)
   for (int i = 0; i < BTN_COUNT; i++)
   {
     btns[i].attach(BTN_PINS[i], INPUT_PULLUP);
-    btns[i].interval(4); // 1ms debounce window
+    btns[i].interval(2); // 2ms debounce window
   }
   
   // sets hat pins to input pullup
@@ -163,7 +164,7 @@ void pinModeSetup(void)
   }
 }
 
-bool sendBatteryLevel(unsigned long now) 
+bool sendBatteryLevel() 
 {
   if (now - lastBatteryCheck > BATTERY_CHECK_INTERVAL)  // every 30 seconds, send the battery level to the computer
     {
@@ -185,7 +186,7 @@ void rumbleTask(void)
   // add later once the base controller works fine
 }
 
-void idleSleepTimer(unsigned long now)
+void idleSleepTimer()
 {
   if (now - lastInputTime > SLEEP_TIMOUT_MS)  // if it has been more than 5 minutes of no changes
     {
@@ -194,23 +195,19 @@ void idleSleepTimer(unsigned long now)
     }
 }
 
-// TODO: Fix unPairingTask
-// is causing the controller to constantly disconnect and reconnect rapidly
-// It's been a naughty boy
-void unPairingTask(unsigned long now)
+void unPairingTask()
 {
-  if (btns[BTN_COUNT-1].isPressed())// if the home button has been pressed for more than 3 seconds, unpair and enter pairing mode
+  if (!btns[BTN_COUNT - 1].isPressed()) // home button held
     {
-      if (now - unpairTimer > 3*1000) 
+      if (now - unpairTimer > 3000) 
       {
-        NimBLEDevice::deleteAllBonds();
-        ESP.restart();
+        bleGamepad.deleteAllBonds(true);
       }
     }
-    else
-    {
-      unpairTimer = now;
-    }
+  else
+  {
+    unpairTimer = now;
+  }
 }
 
 
@@ -225,9 +222,16 @@ void setup() {
   config.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
   pinModeSetup();
 
+  if (bleGamepad.)
+
+ 
   bleGamepad.begin(&config);
   bleGamepad.setHat(HAT_CENTERED);
   bleGamepad.sendReport();
+
+  now = millis();
+  unpairTimer = now;
+  lastInputTime = now;
 }
 
 void loop() {
@@ -243,11 +247,12 @@ void loop() {
     now = millis(); // current time
 
 
-    idleSleepTimer(now); // puts ESP to sleep if idle time is greater than 5 minutes
+    idleSleepTimer(); // puts ESP to sleep if idle time is greater than 5 minutes
 
     // anyChanged |= sendBatteryLevel(now);  // sends battery level to computer ** Commented out for testing **
 
-    // unPairingTask(now); // unpairs device
+    if (now > 5000) // 5 second grace period
+      unPairingTask(); // unpairs device
 
     if (anyChanged) // sends report if any button/hat/axis state has changed and send the battery level
       {

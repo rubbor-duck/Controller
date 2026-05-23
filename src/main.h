@@ -49,10 +49,10 @@ bool hatTask(void);
 int16_t readAxisAveraged (uint8_t pin);
 bool axisTask(void);
 void pinModeSetup(void);
-bool sendBatteryLevel(unsigned long now);
+bool sendBatteryLevel();
 void rumbleTask(void);
-void idleSleepTimer(unsigned long now);
-void unPairingTask(unsigned long now);
+void idleSleepTimer();
+void unPairingTask();
 
 const uint8_t BTN_PINS[] = {
   // saves the buttons into an array for cleaner use
