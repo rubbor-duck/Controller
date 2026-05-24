@@ -2,6 +2,7 @@
 #include <BleGamepad.h>
 #include <Bounce2.h>
 #include <NimBLEDevice.h>
+#include <driver/rtc_io.h>
 #include <main.h>
 
 // TODO: WORK ON FIXING AXIS, then we can design/print the pcb board
@@ -15,7 +16,7 @@ Bounce2::Button hats[HAT_COUNT];
 unsigned long lastInputTime = 0;
 unsigned long lastBatteryCheck = 0;
 unsigned long unpairTimer = 0;
-unsigned long pairTimer = 0;
+unsigned long sleepTimer = 0;
 unsigned long now = 0;
 
 int16_t lastAxisValues[AXIS_COUNT] = {0};
@@ -186,32 +187,56 @@ void rumbleTask(void)
   // add later once the base controller works fine
 }
 
+void sleep(void)
+{
+  // Keep pullups alive during deep sleep so pins don't float LOW
+  rtc_gpio_pullup_en(BTN_HOME_PIN);
+  rtc_gpio_pulldown_dis(BTN_HOME_PIN);
+
+  esp_sleep_enable_ext1_wakeup(BTN_WAKEUP_BITMASK, ESP_EXT1_WAKEUP_ANY_LOW);  
+  esp_deep_sleep_start();
+}
+
 void idleSleepTimer()
 {
   if (now - lastInputTime > SLEEP_TIMOUT_MS)  // if it has been more than 5 minutes of no changes
     {
-      esp_sleep_enable_ext1_wakeup(BTN_WAKEUP_BITMASK, ESP_EXT1_WAKEUP_ANY_LOW);
-      esp_deep_sleep_start();
+      sleep();
     }
+}
+
+void sleepTask()
+{
+  if((!btns[BTN_COUNT - 1].isPressed()) && (btns[BTN_COUNT - 2].isPressed())) // only home button held for more than 5 seconds
+  {
+    if (now - sleepTimer > 5000) 
+    {
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(3000);
+
+      sleep();
+    }
+  }
+
+  else
+  {  
+    sleepTimer = now;
+  }
 }
 
 void unPairingTask()
 {
-  if (!btns[BTN_COUNT - 1].isPressed()) // home button held
+  if ((!btns[BTN_COUNT - 1].isPressed()) && (!btns[BTN_COUNT - 2].isPressed())) // home and select buttons held
     {
-      if (now - unpairTimer > 3000) 
-      {
+      if (now - unpairTimer > 5000) 
         bleGamepad.deleteAllBonds(true);
-      }
     }
   else
-  {
     unpairTimer = now;
-  }
 }
 
 
-
+// Setup Runs Before The Main loop
 void setup() {
   config.setControllerType(CONTROLLER_TYPE_GAMEPAD);
   config.setButtonCount(BTN_COUNT - NUM_SPECIAL_BTN);
@@ -221,9 +246,6 @@ void setup() {
   config.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
   config.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
   pinModeSetup();
-
-  if (bleGamepad.)
-
  
   bleGamepad.begin(&config);
   bleGamepad.setHat(HAT_CENTERED);
@@ -232,8 +254,13 @@ void setup() {
   now = millis();
   unpairTimer = now;
   lastInputTime = now;
+  sleepTimer = now;
+
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
+// Main loop
 void loop() {
   if (bleGamepad.isConnected()) {
     TickType_t lastWake = xTaskGetTickCount();  // creates the clock and has a lastWake so the function will sleep between pollings
@@ -241,13 +268,15 @@ void loop() {
     // if a button/hat/axis state changes, then newInput is set to true
     bool anyChanged = false;
     anyChanged |= buttonTask();
-    // anyChanged |= axisTask(); Commented out for testing
+    anyChanged |= axisTask();
     anyChanged |= hatTask();
     
     now = millis(); // current time
 
 
     idleSleepTimer(); // puts ESP to sleep if idle time is greater than 5 minutes
+
+    sleepTask(); // if only home button is held down, then the controller will go to sleep
 
     // anyChanged |= sendBatteryLevel(now);  // sends battery level to computer ** Commented out for testing **
 
@@ -260,6 +289,8 @@ void loop() {
         bleGamepad.sendReport();  
       }
 
+      digitalWrite(LED_BUILTIN, HIGH);
+    
     vTaskDelayUntil(&lastWake, pollInterval);
   }
 }

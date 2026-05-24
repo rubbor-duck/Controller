@@ -12,7 +12,7 @@
 //special buttons have to be semi separate
 #define BTN_START_PIN   GPIO_NUM_36
 #define BTN_SELECT_PIN  GPIO_NUM_17
-#define BTN_HOME_PIN    GPIO_NUM_35
+#define BTN_HOME_PIN    GPIO_NUM_1
 #define BTN_COUNT ARRAY_SIZE(BTN_PINS)
 
 // hatswitch mapping
@@ -37,7 +37,7 @@
 #define NUM_SPECIAL_BTN 3 // number of specials buttons
 #define SLEEP_TIMOUT_MS (5 * 60 * 1000) // 5 minutes
 #define BATTERY_CHECK_INTERVAL (30 * 1000) // 30 seconds
-#define BTN_WAKEUP_BITMASK (1ULL << BTN_HOME_PIN)
+#define BTN_WAKEUP_BITMASK (1ULL << (BTN_HOME_PIN))
 
 #define BATTERY_PIN GPIO_NUM_13
 #define BATT_MAX_MV 4200
@@ -51,8 +51,10 @@ bool axisTask(void);
 void pinModeSetup(void);
 bool sendBatteryLevel();
 void rumbleTask(void);
-void idleSleepTimer();
-void unPairingTask();
+void unPairingTask(void);
+void idleSleepTimer(void);
+void sleepTask(void);
+void sleep(void);
 
 const uint8_t BTN_PINS[] = {
   // saves the buttons into an array for cleaner use

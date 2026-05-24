@@ -1731,7 +1731,7 @@ bool BleGamepad::deleteBond(bool resetBoard)
 bool BleGamepad::enterPairingMode()
 {
   NimBLEServer* server = NimBLEDevice::getServer();
-
+  
   if (server)
   {
     NIMBLE_LOGD(LOG_TAG, "enterPairingMode - Pairing mode entered");
