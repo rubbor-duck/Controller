@@ -3806,16 +3806,6 @@
 	)
 	(wire
 		(pts
-			(xy 322.58 91.44) (xy 309.88 91.44)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2376c550-1138-4eb8-ac84-7528b8400201")
-	)
-	(wire
-		(pts
 			(xy 397.51 172.72) (xy 397.51 177.8)
 		)
 		(stroke
@@ -3883,6 +3873,16 @@
 			(type default)
 		)
 		(uuid "35ad9ef0-877b-423a-95b8-c87c59218826")
+	)
+	(wire
+		(pts
+			(xy 309.88 88.9) (xy 322.58 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3a557676-2155-41f4-9e3f-64698d580277")
 	)
 	(wire
 		(pts
@@ -4606,16 +4606,6 @@
 	)
 	(wire
 		(pts
-			(xy 309.88 88.9) (xy 322.58 88.9)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "cc6b2b09-1a70-4f88-ad44-9f11b41b60f9")
-	)
-	(wire
-		(pts
 			(xy 269.24 142.24) (xy 269.24 147.32)
 		)
 		(stroke
@@ -4773,6 +4763,16 @@
 			(type default)
 		)
 		(uuid "e1aea73c-71c7-4c85-9a87-3217c1180c39")
+	)
+	(wire
+		(pts
+			(xy 309.88 91.44) (xy 322.58 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e3c22715-ffcd-4e94-be6c-556ae0f36926")
 	)
 	(wire
 		(pts
@@ -5175,7 +5175,7 @@
 		(uuid "786972d3-47c3-490a-ae43-0187e8675a6e")
 	)
 	(label "JoyLeftX"
-		(at 322.58 91.44 180)
+		(at 322.58 88.9 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5475,7 +5475,7 @@
 		(uuid "ee98f456-3449-4a12-a5dd-88e580d2658e")
 	)
 	(label "JoyLeftY"
-		(at 322.58 88.9 180)
+		(at 322.58 91.44 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5740,7 +5740,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1ddd0b19-0921-49e1-8e3f-a0a6e10fe63c")
-		(property "Reference" "C6"
+		(property "Reference" "C4"
 			(at 396.2463 27.94 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5760,7 +5760,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_01005_0402Metric_Pad0.57x0.30mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
 			(at 396.24 34.29 0)
 			(hide yes)
 			(show_name no)
@@ -5802,7 +5802,7 @@
 		(instances
 			(project "Controller"
 				(path "/e42be9dc-66c8-439d-b9b0-22b04166f60b"
-					(reference "C6")
+					(reference "C4")
 					(unit 1)
 				)
 			)
@@ -8727,7 +8727,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "88981a41-a45b-4230-9839-480aaebe561a")
-		(property "Reference" "C10"
+		(property "Reference" "C8"
 			(at 462.2863 30.48 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8747,7 +8747,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_01005_0402Metric_Pad0.57x0.30mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
 			(at 462.28 36.83 0)
 			(hide yes)
 			(show_name no)
@@ -8789,7 +8789,7 @@
 		(instances
 			(project "Controller"
 				(path "/e42be9dc-66c8-439d-b9b0-22b04166f60b"
-					(reference "C10")
+					(reference "C8")
 					(unit 1)
 				)
 			)
@@ -9050,7 +9050,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9c3611ff-66da-4874-958a-3cc640af09d0")
-		(property "Reference" "C3"
+		(property "Reference" "C2"
 			(at 350.5263 27.94 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9070,7 +9070,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_01005_0402Metric_Pad0.57x0.30mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
 			(at 350.52 34.29 0)
 			(hide yes)
 			(show_name no)
@@ -9112,7 +9112,7 @@
 		(instances
 			(project "Controller"
 				(path "/e42be9dc-66c8-439d-b9b0-22b04166f60b"
-					(reference "C3")
+					(reference "C2")
 					(unit 1)
 				)
 			)
@@ -9209,7 +9209,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a45af5cc-8576-456c-8140-0627e2c85346")
-		(property "Reference" "C8"
+		(property "Reference" "C6"
 			(at 429.2663 29.21 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9229,7 +9229,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_01005_0402Metric_Pad0.57x0.30mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
 			(at 429.26 35.56 0)
 			(hide yes)
 			(show_name no)
@@ -9271,7 +9271,7 @@
 		(instances
 			(project "Controller"
 				(path "/e42be9dc-66c8-439d-b9b0-22b04166f60b"
-					(reference "C8")
+					(reference "C6")
 					(unit 1)
 				)
 			)
@@ -9612,7 +9612,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "bbd37d21-eef7-4771-818c-915e093655c6")
-		(property "Reference" "C9"
+		(property "Reference" "C7"
 			(at 462.2863 17.78 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9632,7 +9632,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_01005_0402Metric_Pad0.57x0.30mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
 			(at 462.28 24.13 0)
 			(hide yes)
 			(show_name no)
@@ -9674,7 +9674,7 @@
 		(instances
 			(project "Controller"
 				(path "/e42be9dc-66c8-439d-b9b0-22b04166f60b"
-					(reference "C9")
+					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -9692,7 +9692,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "beaffc59-d094-4470-a631-c27f4521a18a")
-		(property "Reference" "C7"
+		(property "Reference" "C5"
 			(at 429.2663 17.78 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9712,7 +9712,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_01005_0402Metric_Pad0.57x0.30mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
 			(at 429.26 24.13 0)
 			(hide yes)
 			(show_name no)
@@ -9754,7 +9754,7 @@
 		(instances
 			(project "Controller"
 				(path "/e42be9dc-66c8-439d-b9b0-22b04166f60b"
-					(reference "C7")
+					(reference "C5")
 					(unit 1)
 				)
 			)
@@ -10258,7 +10258,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e2e6e904-9115-4cde-a06f-8257fdf77a23")
-		(property "Reference" "C4"
+		(property "Reference" "C1"
 			(at 351.7963 17.78 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10278,7 +10278,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_01005_0402Metric_Pad0.57x0.30mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
 			(at 351.79 24.13 0)
 			(hide yes)
 			(show_name no)
@@ -10320,7 +10320,7 @@
 		(instances
 			(project "Controller"
 				(path "/e42be9dc-66c8-439d-b9b0-22b04166f60b"
-					(reference "C4")
+					(reference "C1")
 					(unit 1)
 				)
 			)
@@ -10738,7 +10738,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "edad7d6e-73f8-4341-b5c3-ba9ddfbd077f")
-		(property "Reference" "C5"
+		(property "Reference" "C3"
 			(at 396.2463 17.78 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10758,7 +10758,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_01005_0402Metric_Pad0.57x0.30mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric_Pad0.74x0.62mm_HandSolder"
 			(at 396.24 24.13 0)
 			(hide yes)
 			(show_name no)
@@ -10800,7 +10800,7 @@
 		(instances
 			(project "Controller"
 				(path "/e42be9dc-66c8-439d-b9b0-22b04166f60b"
-					(reference "C5")
+					(reference "C3")
 					(unit 1)
 				)
 			)
